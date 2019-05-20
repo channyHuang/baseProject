@@ -6,3 +6,6 @@ base project of dll. Usually when develop a device dependent module. For example
 
 ## DllLoadBase
 base project of loading dll. Just for test with the above.
+
+## ReadIniBase
+base project of reading ini files, and unit test in qt. 
