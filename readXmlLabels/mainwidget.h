@@ -22,11 +22,9 @@ public:
 signals:
     void sigHasData(QString qsBuffer);
 
-public slots:
-    void sendSig();
-
 private:
-    QString qsBuffer;
+    AnalyseLabels *m_analyseLabels;
+    QThread *m_thread;
 };
 
 #endif // MAINWIDGET_H

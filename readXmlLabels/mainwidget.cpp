@@ -12,11 +12,12 @@ void MainWidget::work(QString qsFileName) {
         std::cout << "File " << qsFileName.toStdString().c_str() << " does not exist" << std::endl;
         return;
     }
-    AnalyseLabels labels;
-    QThread *thread = new QThread();
-    labels.moveToThread(thread);
-    thread->start();
-    connect(this, &MainWidget::sigHasData, &labels, &AnalyseLabels::analyse);
+
+    m_thread = new QThread();
+    m_analyseLabels = new AnalyseLabels();
+    m_analyseLabels->moveToThread(m_thread);
+    m_thread->start();
+    connect(this, &MainWidget::sigHasData, m_analyseLabels, &AnalyseLabels::analyse);
 
     std::cout << "start to read file" << std::endl;
     if(file.open(QIODevice::ReadOnly)) {
@@ -25,21 +26,15 @@ void MainWidget::work(QString qsFileName) {
         qint64 lineLen = file.readLine(buffer , sizeof(buffer));
         while (lineLen != -1)
         {
-            qsBuffer = QString(buffer);
+            QString qsBuffer = QString(buffer);
             //labels.analyse(qsBuffer);
-            //QTimer::singleShot(0, this, &MainWidget::sendSig);
-            sendSig();
-
+            QTimer::singleShot(0, this, [this, qsBuffer]{
+                emit sigHasData(qsBuffer);
+            });
             lineLen = file.readLine(buffer , sizeof(buffer));
         }
     }
     file.close();
     std::cout << "finish read file" << std::endl;
-    std::cout << labels.count << std::endl;
-}
-
-void MainWidget::sendSig()
-{
-    emit sigHasData(qsBuffer);
-    std::cout << "send sig success" << std::endl;
+    std::cout << m_analyseLabels->count << std::endl;
 }
