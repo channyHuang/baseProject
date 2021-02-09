@@ -7,11 +7,12 @@ TARGET = logSystem
 CONFIG += console
 CONFIG -= app_bundle
 
-TEMPLATE = app
+TEMPLATE = lib
 
 SOURCES += main.cpp \
-    logThread.cpp \
+    framework.cpp \
     logManager.cpp \
+    logbuffer.cpp \
     readini.cpp
 
 # The following define makes your compiler emit warnings if you use
@@ -26,6 +27,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 HEADERS += \
-    logThread.h \
+    framework.h \
     logManager.h \
+    logbuffer.h \
     readini.h
