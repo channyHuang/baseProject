@@ -1,6 +1,7 @@
 #include <QCoreApplication>
 
 #include "framework.h"
+#include <thread>
 
 int g_level = 3;
 
@@ -30,19 +31,30 @@ void* threadRun(void* args)
     }
 }
 
+void cThreadRun()
+{
+    for (int i = 0; i < 1e7; i++) {
+        formatlog("this is a multithread log writing program %d", i);
+    }
+}
+
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
     init("log", "testLogSystem", 3);
     writelog("xxxxxxxx", 5);
-/*
+#ifndef WIN32
     pthread_t tids[5];
-    for (int i = 0;i < 5; ++i)
+    for (int i = 0;i < 5; ++i) {
         pthread_create(&tids[i], NULL, threadRun, NULL);
-
-    for (int i = 0;i < 5; ++i)
-    pthread_join(tids[i], NULL);
-*/
+        pthread_join(tids[i], NULL);
+    }
+#else
+    for (int i = 0; i < 5; i++) {
+        std::thread cThread(cThreadRun);
+        cThread.join();
+    }
+#endif
     return a.exec();
 }

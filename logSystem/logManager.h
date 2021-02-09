@@ -3,6 +3,8 @@
 
 #include <QObject>
 #include <QTime>
+#include <QDate>
+#include <QDateTime>
 #include <fstream>
 
 #include <errno.h>
@@ -16,6 +18,10 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#else
+#include <thread>
+#include <mutex>
+#include <condition_variable>
 #endif
 
 #include "logbuffer.h"
@@ -51,8 +57,8 @@ struct utc_timer
 
     uint64_t get_curr_time(int* p_msec = nullptr)
     {
+#ifndef WIN32
         struct timeval tv;
-#ifndef WIN32      
         gettimeofday(&tv, NULL);
         if (p_msec) {
             *p_msec = tv.tv_usec / 1000;
@@ -63,7 +69,6 @@ struct utc_timer
             m_nSysSecond = tv.tv_sec;
 #else
         QTime qTime = QTime::currentTime();
-        tv.tv_sec = qTime.second();
         if (p_msec) {
             *p_msec = qTime.msec();
         }
@@ -84,11 +89,12 @@ struct utc_timer
                 reset_utc_fmt_sec();
             }
         }
-        return tv.tv_sec;
+        return m_nSysSecond;
     }
 
     void setCurTime()
     {
+#ifndef WIN32
         struct tm curm_stTimer;
         localtime_r((time_t*)&m_nSysSecond, &curm_stTimer);
         year = curm_stTimer.tm_year + 1900;
@@ -97,6 +103,15 @@ struct utc_timer
         hour  = curm_stTimer.tm_hour;
         min  = curm_stTimer.tm_min;
         sec  = curm_stTimer.tm_sec;
+#else
+        QDateTime qDateTime = QDateTime::currentDateTime();
+        year = qDateTime.date().year();
+        mon = qDateTime.date().month();
+        day = qDateTime.date().day();
+        hour = qDateTime.time().hour();
+        min = qDateTime.time().minute();
+        sec = qDateTime.time().second();
+#endif
     }
 
     int year, mon, day, hour, min, sec;
@@ -122,7 +137,11 @@ class LogManager : public QObject
     Q_OBJECT
 public:
     static LogManager* getInstance() {
+#ifndef WIN32
         pthread_once(&m_pthOnce, LogManager::initThread);
+#else
+        std::call_once(m_pthOnceFlag, LogManager::initThread);
+#endif
         return m_instance;
     }
 
@@ -139,8 +158,6 @@ private:
 
     LogBuffer *pCurBuffer, *pToWriteBuffer;
     int m_nBufferCnt = 3;
-    pthread_mutex_t m_mutex = PTHREAD_MUTEX_INITIALIZER;
-    pthread_cond_t m_cond = PTHREAD_COND_INITIALIZER;
     char m_pLogPath[256];
     char m_pLogName[128];
     bool m_bInited = false;
@@ -162,8 +179,16 @@ private:
     uint32_t m_nLogUseLimit = (1 << 30);
     uint32_t m_nRelogThresold = 5;
 
-    static pthread_once_t m_pthOnce;
     static LogManager* m_instance;
+#ifndef WIN32
+    static pthread_once_t m_pthOnce;
+    pthread_mutex_t m_mutex = PTHREAD_MUTEX_INITIALIZER;
+    pthread_cond_t m_cond = PTHREAD_COND_INITIALIZER;
+#else
+    static std::once_flag m_pthOnceFlag;
+    std::mutex m_mutex;
+    std::condition_variable m_cond;
+#endif
 };
 
 

@@ -13,7 +13,12 @@ pid_t gettid()
 #endif
 }
 
+#ifndef WIN32
 pthread_once_t LogManager::m_pthOnce = PTHREAD_ONCE_INIT;
+#else
+std::once_flag LogManager::m_pthOnceFlag;
+#endif
+
 LogManager* LogManager::m_instance;
 
 
@@ -67,7 +72,11 @@ void LogManager::initThread()
 
 void LogManager::init(const char* pLogPath, const char* pLogName, int nLevel)
 {
+#ifndef WIN32
     pthread_mutex_lock(&m_mutex);
+#else
+    std::unique_lock<std::mutex> locker(m_mutex);
+#endif
 
     strncpy(m_pLogPath, pLogPath, 256);
     strncpy(m_pLogName, pLogName, 128);
@@ -88,7 +97,11 @@ void LogManager::init(const char* pLogPath, const char* pLogName, int nLevel)
     m_eLogLevel = (nLevel >= LOG_NOLEVEL ? LOG_FATAL : nLevel);
     m_eLogLevel = (nLevel <= LOG_INFO ? LOG_INFO : nLevel);
 
+#ifndef WIN32
     pthread_mutex_unlock(&m_mutex);
+#else
+    locker.unlock();
+#endif
 }
 
 int LogManager::getLevel()
@@ -99,7 +112,12 @@ int LogManager::getLevel()
 void LogManager::runThread()
 {
     while (true) {
+#ifndef WIN32
         pthread_mutex_lock(&m_mutex);
+#else
+        std::unique_lock<std::mutex> locker(m_mutex);
+#endif
+
         if (pToWriteBuffer->m_nType == LogBuffer::Buffer_Valiable)
         {
             struct timespec tsp;
@@ -114,12 +132,21 @@ void LogManager::runThread()
             tsp.tv_nsec = qTime.msec() * 1000 * 1000;
 #endif
             tsp.tv_sec += m_nBufferWaitTime;
+#ifndef WIN32
             pthread_cond_timedwait(&m_cond, &m_mutex, &tsp);
+#else
+            auto cNow = std::chrono::system_clock::now();
+            m_cond.wait_until(locker, cNow + std::chrono::seconds(m_nBufferWaitTime));
+#endif
         }
 
         if (pToWriteBuffer->isEmpty())
         {
+#ifndef WIN32
             pthread_mutex_unlock(&m_mutex);
+#else
+            locker.unlock();
+#endif
             continue;
         }
 
@@ -131,7 +158,11 @@ void LogManager::runThread()
         }
 
         int year = m_stTimer.year, mon = m_stTimer.mon, day = m_stTimer.day;
+#ifndef WIN32
         pthread_mutex_unlock(&m_mutex);
+#else
+        locker.unlock();
+#endif
 
         if (!checkLogFile(year, mon, day)) {
             continue;
@@ -139,10 +170,19 @@ void LogManager::runThread()
         pToWriteBuffer->writeToFile(m_pFile);
         fflush(m_pFile);
 
+#ifndef WIN32
         pthread_mutex_lock(&m_mutex);
+#else
+        locker.lock();
+#endif
         pToWriteBuffer->clear();
         pToWriteBuffer = pToWriteBuffer->next;
+
+#ifndef WIN32
         pthread_mutex_unlock(&m_mutex);
+#else
+        locker.unlock();
+#endif
     }
 }
 
@@ -168,7 +208,12 @@ void LogManager::addLog(const char* pLevel, const char* format, ...)
     m_nLastTime = 0;
     bool tell_back = false;
 
+#ifndef WIN32
     pthread_mutex_lock(&m_mutex);
+#else
+    std::unique_lock<std::mutex> locker(m_mutex);
+#endif
+
     if (pCurBuffer->m_nType == LogBuffer::Buffer_Valiable && pCurBuffer->getFreeLen() >= len)
     {
         pCurBuffer->addLog(log_line, len);
@@ -214,10 +259,20 @@ void LogManager::addLog(const char* pLevel, const char* format, ...)
             m_nLastTime = curr_sec;
         }
     }
+
+#ifndef WIN32
     pthread_mutex_unlock(&m_mutex);
+#else
+    locker.unlock();
+#endif
+
     if (tell_back)
     {
+#ifndef WIN32
         pthread_cond_signal(&m_cond);
+#else
+        m_cond.notify_one();
+#endif
     }
 }
 

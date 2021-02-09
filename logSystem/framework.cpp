@@ -50,12 +50,22 @@ void* startThread(void* args)
     return NULL;
 }
 
+void cStartThread()
+{
+    LogManager::getInstance()->runThread();
+}
+
 void init(const char* pLogPath, const char* pLogName, int nLevel)
 {
     LogManager::getInstance()->init(pLogPath, pLogName, nLevel);
+#ifndef WIN32
     pthread_t tid;
     pthread_create(&tid, NULL, startThread, NULL);
     pthread_detach(tid);
+#else
+    std::thread mainThread(cStartThread);
+    mainThread.detach();
+#endif
 }
 
 void writelog(const char* pLogMessage, int nLevel)
