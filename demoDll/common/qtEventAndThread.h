@@ -11,7 +11,7 @@ public:
         if(NULL == QCoreApplication::instance())
         {
             int argc=1;
-            QString name = "DllBase";
+            QString name = "demoDll";
             char *argv = (char*)name.toStdString().c_str();
             m_pApp = new QCoreApplication(argc,&argv);
         }

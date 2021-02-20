@@ -7,9 +7,13 @@ const QString qsUploadFileApi = "xxx/updateFile";
 
 NetworkManager::NetworkManager(QObject* parent) : QObject(parent)
 {
-    m_thread.bind(this);
-    m_thread.start();
-    m_pNetworkManager = new QNetworkAccessManager(parent);
+    try {
+        m_thread.bind(this);
+        m_thread.start();
+        m_pNetworkManager = new QNetworkAccessManager(parent);
+    } catch (std::exception e) {
+        CommonFunc::writeLog("NetworkManager create failed " + QString(e.what()));
+    }
 }
 
 NetworkManager::~NetworkManager() {
@@ -179,6 +183,7 @@ void NetworkManager::httpReadyRead()
 
 void NetworkManager::login(std::string sUserName, std::string sPassword)
 {
+    CommonFunc::writeLog("login in NetworkManager");
     QHash<QString, QString> qhLoginInfo;
     qhLoginInfo["account"] = QString(sUserName.c_str());
     qhLoginInfo["password"] = CommonFunc::encodePassword(QString(sPassword.c_str()));

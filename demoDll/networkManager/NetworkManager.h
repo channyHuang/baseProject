@@ -21,12 +21,12 @@
 #include <thread>
 #include <fstream>
 #include <mutex>
-
+#include <exception>
 #include "common/common.h"
 #include "common/qtEventAndThread.h"
 
 static std::mutex g_mutex;
-static QCoreApplication* g_app = QCoreApplication::instance();
+//static QCoreApplication* g_app = QCoreApplication::instance();
 static std::thread qtThread;
 static QThread qThread;
 

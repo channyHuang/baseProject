@@ -10,6 +10,8 @@
 #define D_EXTERN_C
 #endif
 
+#define __SHARE_EXPORT
+
 #ifdef __SHARE_EXPORT
 #define D_SHARE_EXPORT D_DECL_EXPORT
 #else
@@ -28,21 +30,25 @@
 #endif
 
 //param void, return void
-D_EXTERN_C D_SHARE_EXPORT void D_CALLTYPE funParamVoidReturnVoid();
+D_EXTERN_C D_SHARE_EXPORT void funParamVoidReturnVoid();
 //param valid, return void
-D_EXTERN_C D_SHARE_EXPORT void D_CALLTYPE funParamValidReturnVoid(const char* pString, int nNumber);
+D_EXTERN_C D_SHARE_EXPORT void funParamValidReturnVoid(const char* pString, int nNumber);
 //param void, return valid
-D_EXTERN_C D_SHARE_EXPORT char* D_CALLTYPE funParamVoidReturnValid();
+D_EXTERN_C D_SHARE_EXPORT char* funParamVoidReturnValid();
 //param valid, return valid
-D_EXTERN_C D_SHARE_EXPORT int D_CALLTYPE funParamValidReturnValid(const char* pString, int nNumber);
+D_EXTERN_C D_SHARE_EXPORT int funParamValidReturnValid(const char* pString, int nNumber);
 
 //has callback
 typedef void (__stdcall *CBFun_NetworkCallback)(std::string sMsg, int nSeq, void* pUser);
-D_EXTERN_C D_SHARE_EXPORT int D_CALLTYPE funSetCallback(CBFun_NetworkCallback pFunc, void *pUser);
-D_EXTERN_C D_SHARE_EXPORT void D_CALLTYPE funRequestNetworkAndCallback(std::string sUserName, std::string sPassword);
+D_EXTERN_C D_SHARE_EXPORT int funSetNetworkCallback(CBFun_NetworkCallback pFunc, void *pUser);
+D_EXTERN_C D_SHARE_EXPORT void funRequestNetworkAndCallback(std::string sUserName, std::string sPassword);
 
 
-D_EXTERN_C D_SHARE_EXPORT int D_CALLTYPE Init(int nType,char* sParas );
-D_EXTERN_C D_SHARE_EXPORT int D_CALLTYPE Deinit(int nHandle);
+//D_EXTERN_C D_SHARE_EXPORT void funSetSerialCallback(int nHandle, CBFun_Callback pFunc, void* pUser);
+
+D_EXTERN_C D_SHARE_EXPORT int Init(int nType,char* sParas );
+D_EXTERN_C D_SHARE_EXPORT int Deinit(int nHandle);
+
+//D_EXTERN_C D_SHARE_EXPORT int D_CALLTYPE testLoad();
 
 #endif // DLLEXPORT_H

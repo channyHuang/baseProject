@@ -10,21 +10,21 @@ QtEvent g_qtEevent;
 SerailManager *g_pSerialManager;
 NetworkManager *g_pNetworkManager;
 
-void D_CALLTYPE funParamVoidReturnVoid()
+void funParamVoidReturnVoid()
 {
     std::ofstream off("log.txt", std::ios::app);
     off << "call function funParamVoidReturnVoid" << std::endl;
     off.close();
 }
 
-void D_CALLTYPE funParamValidReturnVoid(const char* pString, int nNumber)
+void funParamValidReturnVoid(const char* pString, int nNumber)
 {
     std::ofstream off("log.txt", std::ios::app);
     off << "call function funParamValidReturnVoid: input string = " << pString << ", input number = " << nNumber << std::endl;
     off.close();
 }
 
-char* D_CALLTYPE funParamVoidReturnValid()
+char* funParamVoidReturnValid()
 {
     std::ofstream off("log.txt", std::ios::app);
     off << "call function funParamVoidReturnValid" << std::endl;
@@ -39,7 +39,7 @@ char* D_CALLTYPE funParamVoidReturnValid()
     return pReturnValue;
 }
 
-int D_CALLTYPE funParamValidReturnValid(const char* pString, int nNumber)
+int funParamValidReturnValid(const char* pString, int nNumber)
 {
     std::ofstream off("log.txt", std::ios::app);
     off << "call function funcParamValidReturnValid: input string = " << pString << ", input number = " << nNumber << std::endl;
@@ -48,7 +48,7 @@ int D_CALLTYPE funParamValidReturnValid(const char* pString, int nNumber)
     return rand() % 1000009;
 }
 
-int D_CALLTYPE funSetCallback(CBFun_NetworkCallback pFunc, void *pUser)
+int funSetNetworkCallback(CBFun_NetworkCallback pFunc, void *pUser)
 {
     if (g_pNetworkManager == nullptr) {
         g_pNetworkManager = NetworkManager::getInstance();
@@ -59,15 +59,27 @@ int D_CALLTYPE funSetCallback(CBFun_NetworkCallback pFunc, void *pUser)
     return 0;
 }
 
-void D_CALLTYPE funRequestNetworkAndCallback(std::string sUserName, std::string sPassword)
+void funRequestNetworkAndCallback(std::string sUserName, std::string sPassword)
 {
+    CommonFunc::writeLog("funRequestNetworkAndCallback");
+    if (g_pNetworkManager == nullptr) {
+        g_pNetworkManager = NetworkManager::getInstance();
+    }
     if (g_pNetworkManager) {
         g_pNetworkManager->login(sUserName, sPassword);
     }
 }
+/*
+int funSetSerialCallback(int nHandle, CBFun_Callback pFunc, void* pUser)
+{
+    CommonFunc::writeLog("funSetCallback");
+    if (nullptr == pUser)
+        return ERROR_CODE_PARAM;
 
+    if(g_pSerialManager) return g_pSerialManager->SetCallback(nHandle, pFunc, pUser);
+}*/
 
-int D_CALLTYPE Init(int nType,char* sParas)
+int Init(int nType,char* sParas)
 {
     if (nullptr == sParas)
         return ERROR_CODE_PARAM;
@@ -91,7 +103,7 @@ int D_CALLTYPE Init(int nType,char* sParas)
     return ERROR_CODE_UNKNOW;
 }
 
-int D_CALLTYPE Deinit(int nHandle)
+int Deinit(int nHandle)
 {
     if(g_pSerialManager)
     {
@@ -103,10 +115,4 @@ int D_CALLTYPE Deinit(int nHandle)
     return ERROR_CODE_UNKNOW;
 }
 
-int SetCallback(int nHandle, CBFun_Callback pFunc, void* pUser)
-{
-    if (nullptr == pUser)
-        return ERROR_CODE_PARAM;
-
-    if(g_pSerialManager) return g_pSerialManager->SetCallback(nHandle, pFunc, pUser);
-}
+//int testLoad() { return 0; }
