@@ -43,6 +43,7 @@ void NetworkManager::webRequest(QString qsUrl, QByteArray qbaBody, bool bGet, in
         pReply = m_pNetworkManager->post(qRequest, qbaBody);
     }
     CommonFunc::writeLog("sent request to server ");
+    CommonFunc::writeLog("webRequest " + QString().sprintf("%p", QThread::currentThread()->currentThreadId()));
     if (pReply) {
         QMetaObject::Connection con = connect(pReply, &QNetworkReply::finished, this, &NetworkManager::sltRequestFinished, Qt::QueuedConnection);
         pReply->setProperty("url", QVariant(qsUrl));
@@ -72,6 +73,7 @@ void NetworkManager::sltRequestFinished() {
     QByteArray qbaResult = pReply->readAll();
 
     CommonFunc::writeLog("requestFinish ");
+    CommonFunc::writeLog("sltRequestFinished " + QString().sprintf("%p", QThread::currentThread()->currentThreadId()));
     CommonFunc::writeLog(qbaResult);
     QJsonDocument qjdResult = QJsonDocument::fromJson(qbaResult);
     if (!qjdResult.isObject()) {
@@ -108,6 +110,7 @@ void NetworkManager::sltRequestFinished() {
 
 void NetworkManager::webJsonRequest(QHash<QString, QString> qhBody)
 {
+    CommonFunc::writeLog("webJsonRequest " + QString().sprintf("%p", QThread::currentThread()->currentThreadId()));
     QJsonObject qjoBody;
     for (QHash<QString, QString>::iterator itr = qhBody.begin(); itr != qhBody.end(); itr++) {
         qjoBody.insert(itr.key(), itr.value());
@@ -183,7 +186,7 @@ void NetworkManager::httpReadyRead()
 
 void NetworkManager::login(std::string sUserName, std::string sPassword)
 {
-    CommonFunc::writeLog("login in NetworkManager");
+    CommonFunc::writeLog("login " + QString().sprintf("%p", QThread::currentThread()->currentThreadId()));
     QHash<QString, QString> qhLoginInfo;
     qhLoginInfo["account"] = QString(sUserName.c_str());
     qhLoginInfo["password"] = CommonFunc::encodePassword(QString(sPassword.c_str()));

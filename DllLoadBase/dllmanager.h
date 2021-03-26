@@ -2,12 +2,17 @@
 #define DLLMANAGER_H
 
 #include <QObject>
+#include <QString>
 #include <QDateTime>
 #include <QFile>
 #include <QIODevice>
 #include <QLibrary>
 #include <QException>
 #include <QTimer>
+#include <QDebug>
+
+#include <fstream>
+#include "../common/common.h"
 
 #pragma pack(push)
 #pragma pack(1)
@@ -21,9 +26,9 @@ typedef struct Callback_Struct
 
 typedef void (*CBFun_Callback)(int nHandle, T_Callback_Struct* pCallbackResult, void* pUser);
 
-typedef int __stdcall (*TYPE_DLL_Init)(int nType, char* sParas);
-typedef int __stdcall (*TYPE_DLL_Deinit)();
-typedef int __stdcall (*TYPE_DLL_SetCallback)(int nHandle, CBFun_Callback pFunc, void* pUser);
+typedef int (*TYPE_DLL_Init)(int nType, char* sParas);
+typedef int (*TYPE_DLL_Deinit)();
+typedef int (*TYPE_DLL_SetCallback)(int nHandle, CBFun_Callback pFunc, void* pUser);
 
 class DllManager : public QObject
 {
@@ -34,11 +39,11 @@ public:
     explicit DllManager(QObject *parent = 0);
     virtual ~DllManager();
 
-private:
+
     bool loadDll();
     void unload();
 
-    void writeLog(const QString &sLog);
+    bool loadDllClass();
 
 private slots:
     void sltOnCallback(T_Callback_Struct* pCallbackResult);
@@ -48,7 +53,7 @@ private:
     TYPE_DLL_Deinit Dll_Deinit;
     TYPE_DLL_SetCallback Dll_SetCallback;
 
-    QString m_sDllName;
+    QString m_qsDllName;
     int m_nHandle;
     bool m_bLoaded;
 };

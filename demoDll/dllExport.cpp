@@ -53,6 +53,7 @@ int funSetNetworkCallback(CBFun_NetworkCallback pFunc, void *pUser)
     if (g_pNetworkManager == nullptr) {
         g_pNetworkManager = NetworkManager::getInstance();
     }
+    CommonFunc::writeLog("funSetNetworkCallback " + QString().sprintf("%p", QThread::currentThread()->currentThreadId()));
     if (g_pNetworkManager) {
         g_pNetworkManager->setCallback(pFunc, pUser);
     }
@@ -61,7 +62,7 @@ int funSetNetworkCallback(CBFun_NetworkCallback pFunc, void *pUser)
 
 void funRequestNetworkAndCallback(std::string sUserName, std::string sPassword)
 {
-    CommonFunc::writeLog("funRequestNetworkAndCallback");
+    CommonFunc::writeLog("funRequestNetworkAndCallback " + QString().sprintf("%p", QThread::currentThread()->currentThreadId()));
     if (g_pNetworkManager == nullptr) {
         g_pNetworkManager = NetworkManager::getInstance();
     }
